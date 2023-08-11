@@ -4,12 +4,8 @@ import matplotlib.pyplot as plt
 import random 
 import pygame
 #----------
-#pygame colors
-white =     (255, 255, 255)
-blue =      (  0,   0, 255)
-green =     (  0, 255,   0)
-red =       (255,   0,   0)
-black=      (0,0,0)
+
+
 #-----------
 
 
@@ -91,7 +87,16 @@ WIDTH, HEIGHT = 800, 800
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Simulation Project")
 clock = pygame.time.Clock()
-#setting loop to keep window open
+
+BORDER = pygame.Rect(WIDTH/2 - 5, 0, 10, HEIGHT)
+
+white =     (255, 255, 255)
+blue =      (  0,   0, 255)
+green =     (  0, 255,   0)
+red =       (255,   0,   0)
+black=      (0,0,0)
+
+#-------------
 def main():
     run = True 
     clock = pygame.time.Clock()
@@ -99,8 +104,12 @@ def main():
     
     while run:
         WIN.fill(black)
+        pygame.draw.rect(WIN, white, BORDER)
         pygame.draw.circle(WIN,white,(cherry.initx,cherry.inity),13,0)
         cherry.initx+=1
+        
+
+    
 
         
         clock.tick(60)
