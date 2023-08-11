@@ -2,15 +2,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import random 
-import pygame
 #----------
-#pygame colors
-white =     (255, 255, 255)
-blue =      (  0,   0, 255)
-green =     (  0, 255,   0)
-red =       (255,   0,   0)
-black=      (0,0,0)
-#-----------
 
 
 
@@ -44,8 +36,6 @@ class Particle:
     def volume(s): #volume of particle (m^3)
         return((4/3)*np.pi*(s.r**3))
     
-    def density(s): #density of particle (kg/m^3)
-        return((s.m)/((4/3)*np.pi*(s.r**3)))
     
     def initposition(s):
         return(s.initx,s.inity)
