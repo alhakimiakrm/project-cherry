@@ -1,118 +1,96 @@
-#imports of outside libraries
+#IMPORTS OF OUTSIDE LIBRARIES----------
 import numpy as np
 import matplotlib.pyplot as plt
 import random 
 import pygame
-#----------
+import pymunk
+#PYGAME COLORS-------------------------
+white =     ( 255, 255, 255 )
+blue =      ( 0, 0, 255 )
+green =     ( 0, 255, 0 )
+red =       ( 255, 0, 0 )
+black=      ( 0, 0, 0 )
 
-
-#-----------
-
-
-
-#let's define a particle
+#LET'S DEFINE A PARTICLE----------------------------------------
 # a particle is...
 # a thing or several things that exist within a location 
 # tends to move around
 # is affected by time and other factors
 # tends to disappear after a certain amount of time
-# can also be expanded, changed (in shape and mass) and destroyed 
-#-----------
+# can also be expanded, changed (in shape and mass) and destroyed
 
-# Blueprint for Sphere-like Particle 
-class Particle:
-    m= 0 #mass of particle (kg)
-    g= 0 #gravitational acceleration (m/s^2)
-    r= 0 #radius of particle (m)
-    initx=0 #position in x-direction
-    inity=0 #position in y-direction
-    D=0
-    t=0
-    v=0
-    f=0
-    
-    def weight(s): #weight of particle (kg m/s^2)
-        return(s.m*s.g)
+#---------------------------------------------------------------
 
-    def area(s): #Surface area of particle (m^2)
-        return(4*(np.pi)*(s.r**2))
-    
-    def volume(s): #volume of particle (m^3)
-        return((4/3)*np.pi*(s.r**3))
-    
-    def density(s): #density of particle (kg/m^3)
-        return((s.m)/((4/3)*np.pi*(s.r**3)))
-    
-    def initposition(s):
-        return(s.initx,s.inity)
-    
-    def finapositionx(s):
-        return(s.initx+s.t*s.v) #return (x) final
-          
-    def finapositiony(s):
-        return(s.inity + s.t*s.v)
-    
-    def xfinal(s):
-        return((s.t**2)*s.f/s.m)
-    
-
-
-# Particle1-Cherry is her name :)
-cherry=Particle()
-cherry.m=1 #kg
-cherry.g=9.8 #m/s^2s
-cherry.initx=400
-cherry.inity=400
-cherry.t=2 #time 
-cherry.D=3
-cherry.v=1 
-cherry.r=15 #m
-#FORCES APPLIED ON CHERRY
-cherry.f=3
-
-#--------------------------
-cherry.w=cherry.weight() #kg m/s^2
-cherry.A=cherry.area() #m^2
-cherry.V=cherry.volume() #m^3
-cherry.D=cherry.density() #kg/m^3
-cherry.iP=cherry.initposition() #initial position(x,y)
-cherry.fPx=cherry.finapositionx() #final position(x,y)
-cherry.fPy=cherry.finapositiony()
-cherry.xf=cherry.xfinal()
-#print(f"Mass={cherry.m} kg,Weight={cherry.w} kg m/s^2,Area={cherry.A} m^2,Volume={cherry.V} m^3,Density={cherry.D} kg/m^3")
-
-#setup visualization via window
-pygame.init ()
+#OUR WINDOW (SIZE & COORDINATES)--------------------------------
 WIDTH, HEIGHT = 800, 800
+botleft=0,0             #these coordinates are based of Pymunk's coordinates
+botright=WIDTH,HEIGHT    
+topleft=0,HEIGHT 
+topright=WIDTH,0
+
+#PHYSICS SPACE--------------------------------------------------
+space=pymunk.Space() #All the physics will be inside this 'space'
+space.gravity=0,-200 #this gives gravity to our space in the negative y direction
+
+#PARTICLE1-CHERRY-----------------------------------------------
+cherry=pymunk.Body() #creating Cherry's body, no argument is added which gives us a dynamic body that reactes to forces,collisions etc.
+cherry.position=400,400 #Initial position of Cherry
+cherry_shape=pymunk.Circle(cherry,12) # second argument is the radius
+cherry_shape.mass=1
+cherry_shape.density=1
+cherry_shape.elasticity=1 # '1' is perfect elasticity
+space.add(cherry,cherry_shape) # we must add out body and shape to our physics space (body,shape)
+
+#CONVERSION OF COORDINATES-------------
+def convert_coordinates(point):
+    return point[0], HEIGHT-point[1]
+
+#WINDOW BARRIER-------------------------------------------------
+#Bottom---------
+barrier_body_bottom=pymunk.Body(body_type=pymunk.Body.STATIC) #This creates a static body 
+barrier_shape_bottom=pymunk.Segment(barrier_body_bottom,(0,0),(800,0),0) #This defines the shape of our body to be a Segment from point (0,0) to (800,0). 3rd argument is the width of the Segment
+barrier_shape_bottom.elasticity=1 #This gives our shape elasticity,'1' being perfectly elastic 
+space.add(barrier_body_bottom,barrier_shape_bottom)#Then we MUST add our body and its shape to our physics space (body,shape)
+#Top------------
+barrier_body_top=pymunk.Body(body_type=pymunk.Body.STATIC) 
+barrier_shape_top=pymunk.Segment(barrier_body_top,(0,800),(800,800),0)  
+barrier_shape_top.elasticity=1 
+space.add(barrier_body_top,barrier_shape_top) 
+#Left-----------
+barrier_body_left=pymunk.Body(body_type=pymunk.Body.STATIC)
+barrier_shape_left=pymunk.Segment(barrier_body_left,(0,0),(0,800),0)
+barrier_shape_left.elasticity=1
+space.add(barrier_body_left,barrier_shape_left)
+#Right----------
+barrier_body_right=pymunk.Body(body_type=pymunk.Body.STATIC)
+barrier_shape_right=pymunk.Segment(barrier_body_left,(800,0),(800,800),0)
+barrier_shape_right.elasticity=1
+space.add(barrier_body_right,barrier_shape_right)
+#----------------------------------------------------------------
+
+#SETUP VISUALIZATION VIA WINDOW----------------------------------
+pygame.init ()
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Simulation Project")
-clock = pygame.time.Clock()
-
 BORDER = pygame.Rect(WIDTH/2 - 5, 0, 10, HEIGHT)
+#CLOCKS----------------------
+clock = pygame.time.Clock()
+FPS=60
+#-----------------------------
 
-white =     (255, 255, 255)
-blue =      (  0,   0, 255)
-green =     (  0, 255,   0)
-red =       (255,   0,   0)
-black=      (0,0,0)
-
-#-------------
 def main():
-    run = True 
-    clock = pygame.time.Clock()
-    
-    
+    run = True
+
     while run:
         WIN.fill(black)
-        pygame.draw.rect(WIN, white, BORDER)
-        pygame.draw.circle(WIN,white,(cherry.initx,cherry.inity),13,0)
-        cherry.initx+=1
+        x,y=convert_coordinates(cherry.position)
+        pygame.draw.circle(WIN,white,(int(x),int(y)),12)
         
-
+       
     
-
         
-        clock.tick(60)
+        clock.tick(FPS)
+        space.step(1/FPS)
         pygame.display.update()
     
         
@@ -128,3 +106,4 @@ def main():
 main()
 #we call main which means this window can only be initialized within VScode, not outside. 
 #-------------
+
