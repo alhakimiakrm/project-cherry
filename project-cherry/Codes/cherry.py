@@ -110,7 +110,7 @@ def run (window, width, height): #just redid our main loop
                 elif pressed_pos:
                     cherry.body.body_type = pymunk.Body.DYNAMIC
                     angle =  calc_angle(*line)
-                    force = calc_distance(*line) * 75 
+                    force = calc_distance(*line) * 75 # This is where we can change the force in which the ball is being launched 
                     fx = math.cos(angle) * force
                     fy = math.sin(angle) * force
                     cherry.body.apply_impulse_at_local_point((fx, fy) , (0, 0)) #when mouse is clicked, force is being applied to x (10000) however, no force is being applied to y (0) 
