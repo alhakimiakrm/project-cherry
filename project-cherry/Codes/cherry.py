@@ -5,7 +5,6 @@ import random
 import pygame
 import pymunk
 import pymunk.pygame_util
-import math
 #PYGAME COLORS-------------------------
 white =     ( 255, 255, 255 )
 blue =      ( 0, 0, 255 )
@@ -22,29 +21,31 @@ black=      ( 0, 0, 0 )
 # can also be expanded, changed (in shape and mass) and destroyed
 #---------------------------------------------------------------
 
-pygame.init()
 
-WIDTH, HEIGHT = 800, 800
-window = pygame.display.set_mode((WIDTH, HEIGHT))
+# Functions defined
 
-def calc_distance(p1, p2):
-    return math.sqrt((p1[1] - p1[1])**2 + (p2[0] - p1[0])**2)
+def create_cherry(space, radius, mass): #I created cherry within a function so that we can call this function when we add new elements to the simulation later on as opposed to rewriting hr attributes each time 
+    cherry = pymunk.Body()
+    cherry.position = (400, 400) 
+    shape = pymunk.Circle(cherry, radius)
+    shape.mass = mass 
+    shape.elasticity = 1
+    shape.friction = 0.5 
+    shape.color = (255, 0, 0, 75)
+    space.add(cherry, shape)
+    return shape
 
-def calc_angle(p1, p2):
-    return math.atan2(p2[1] - p1[1], p2[0] - p1[0])
+def create_cherry2(space, radius, mass):
+    cherry2 = pymunk.Body()
+    cherry2.position = (600, 600)  
+    shape = pymunk.Circle(cherry2, radius)
+    shape.mass = mass
+    shape.elasticity = 1
+    shape.friction = 0.5
+    shape.color = (255, 255, 255, 75)  
+    space.add(cherry2, shape)
+    return shape
 
-def draw(space, window, draw_options, line): #defining our draw options within our space so we can utilize pygame within pymunk and vice versa
-    window.fill("black")
-    
-    if line:
-        pygame.draw.line (window, "white", line[0], line[1], 2)
-        
-    space.debug_draw(draw_options)
-    
-    pygame.display.update()
-    
-    
-    
 def boundary_set(space, width, height): #same output of code, different format for more precise addition and change of code
     rects = [
         [(width/2, height - 10), (width, 20)],
@@ -61,20 +62,18 @@ def boundary_set(space, width, height): #same output of code, different format f
         shape.friction = .5
         space.add(body, shape)
         
-        
-    
-    
-def create_cherry(space, radius, mass, pos): #I created cherry within a function so that we can call this function when we add new elements to the simulation later on as opposed to rewriting her attributes each time 
-    cherry = pymunk.Body(body_type=pymunk.Body.STATIC)
-    cherry.position = pos 
-    shape = pymunk.Circle(cherry, radius)
-    shape.mass = mass 
-    shape.elasticity = 1
-    shape.friction = .5 
-    shape.color = (255, 0, 0, 75)
-    space.add(cherry, shape)
-    return shape 
-    
+def draw(space, window, draw_options): #defining our draw options within our space so we can utilize pygame within pymunk and vice versa
+    window.fill("black")
+    space.debug_draw(draw_options)
+    pygame.display.update()  
+
+
+
+pygame.init()
+
+WIDTH, HEIGHT = 800, 800
+window = pygame.display.set_mode((WIDTH, HEIGHT))
+
 
 def run (window, width, height): #just redid our main loop 
     run = True
@@ -83,44 +82,34 @@ def run (window, width, height): #just redid our main loop
     dt = 1 / fps
 
     space = pymunk.Space()
-    space.gravity = (0, 981) #9.81 m/s gravitational constant
+    space.gravity = (0, 0) #9.81 m/s gravitational constant
     
-    
+    cherry = create_cherry(space, 50, 10)
+    cherry2 = create_cherry2(space, 20, 5)  
+
     boundary_set(space, width, height)
     
     draw_options = pymunk.pygame_util.DrawOptions(window)
     
-    pressed_pos = None 
-    cherry = None 
-    
     
     while run:
-        line = None
-        if cherry and pressed_pos:
-            line = [pressed_pos, pygame.mouse.get_pos()]
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
                 break
             
-            if event.type == pygame.MOUSEBUTTONDOWN: 
-                if not cherry:
-                    pressed_pos = pygame.mouse.get_pos()
-                    cherry = create_cherry(space, 30, 10, pressed_pos)
-                elif pressed_pos:
-                    cherry.body.body_type = pymunk.Body.DYNAMIC
-                    angle =  calc_angle(*line)
-                    force = calc_distance(*line) * 75 # This is where we can change the force in which the ball is being launched 
-                    fx = math.cos(angle) * force
-                    fy = math.sin(angle) * force
-                    cherry.body.apply_impulse_at_local_point((fx, fy) , (0, 0)) #when mouse is clicked, force is being applied to x (10000) however, no force is being applied to y (0) 
-                    pressed_pos = None
-                else:
-                    space.remove(cherry, cherry.body)
-                    cherry = None 
             
+        cherry2.position = (random.uniform(0, WIDTH), random.uniform(0, HEIGHT))
+        
+        collisions = space.shape_query(cherry2)  
+        for collision in collisions:
+            shape, point = collision
+            if shape == cherry.shape:
+                
+                pass
+   
             
-        draw(space, window, draw_options, line)
+        draw(space, window, draw_options)
         space.step(dt)
         clock.tick(fps)
         
@@ -128,13 +117,3 @@ def run (window, width, height): #just redid our main loop
     
 if __name__ == "__main__":
     run(window, WIDTH, HEIGHT)
-            
-
-
-
-#I'm assuming you meant to leave this as just a reference so I commented them out but I don't know
-#botleft=0,0            #these coordinates are based of Pymunk's coordinates 
-#botright=WIDTH,HEIGHT    
-#topleft=0,HEIGHT 
-#topright=WIDTH,0
-
